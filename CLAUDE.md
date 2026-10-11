@@ -48,6 +48,12 @@ Next.js 16.4 (App Router, TS strict) · React 19.3 · Tailwind v4 · shadcn/ui �
 - Self-hosted WASM: `scripts/copy-vendor-wasm.mjs` (postinstall) copies MediaPipe → `public/mediapipe/wasm` and zxing → `public/zxing`. Both are excluded from `proxy.ts`, git, lint and Prettier.
 - If `prisma migrate dev` refuses to run non-interactively, generate SQL with `prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script`, save it as a new migration folder and run `prisma migrate deploy`.
 
+## Dashboard & settings (Phase 5)
+
+- Dashboard data: `src/features/dashboard/queries.ts`. At-risk rule: `src/features/attendance/at-risk.ts` (consecutive missed CLOSED meetings on/after the member's `createdAt`).
+- Settings: one row per key in `setting`; read with `getAppSettings()` (defaults in `src/features/settings/schema.ts`), saved by `saveSettings` (`settings.manage`).
+- With Cache Components, recently visited pages stay mounted but hidden (React Activity) — in browser tests, scope locators to visible content.
+
 ## Conventions
 
 - Feature code goes in `src/features/<module>/` (`actions.ts`, `queries.ts`, `schema.ts`, `components/`).

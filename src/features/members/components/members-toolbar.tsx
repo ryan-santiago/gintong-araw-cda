@@ -34,7 +34,7 @@ export function MembersToolbar({
   canExport,
   canPrintIds,
 }: {
-  counts: { active: number; inactive: number }
+  counts: { active: number; inactive: number; atRisk: number }
   blocks: string[]
   canExport: boolean
   canPrintIds: boolean
@@ -63,9 +63,10 @@ export function MembersToolbar({
   }
   useEffect(() => () => clearTimeout(timer.current), [])
 
-  const status = searchParams.get("status") ?? "active"
+  const status = searchParams.get("risk") === "1" ? "risk" : (searchParams.get("status") ?? "active")
   const tabs = [
     { value: "active", label: "Active", count: counts.active },
+    { value: "risk", label: "At risk", count: counts.atRisk },
     { value: "inactive", label: "Inactive", count: counts.inactive },
     { value: "all", label: "All", count: counts.active + counts.inactive },
   ]
@@ -89,7 +90,11 @@ export function MembersToolbar({
             return (
               <Link
                 key={tab.value}
-                href={hrefWith({ status: tab.value === "active" ? undefined : tab.value })}
+                href={hrefWith(
+                  tab.value === "risk"
+                    ? { risk: "1", status: undefined }
+                    : { risk: undefined, status: tab.value === "active" ? undefined : tab.value }
+                )}
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
@@ -97,7 +102,14 @@ export function MembersToolbar({
                 )}
               >
                 {tab.label}
-                <span className="rounded-full bg-background px-1.5 text-xs tabular-nums">{tab.count}</span>
+                <span
+                  className={cn(
+                    "rounded-full px-1.5 text-xs tabular-nums",
+                    tab.value === "risk" && tab.count > 0 ? "bg-warning text-white" : "bg-background"
+                  )}
+                >
+                  {tab.count}
+                </span>
               </Link>
             )
           })}

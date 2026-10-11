@@ -12,6 +12,8 @@ import { MemberRowActions } from "@/features/members/components/member-row-actio
 import { MembersToolbar } from "@/features/members/components/members-toolbar"
 import { isOfficer, positionLabel } from "@/features/members/positions"
 import { listBlocks, listMembers, MEMBER_PAGE_SIZE, parseMemberFilters } from "@/features/members/queries"
+import { membersAtRisk } from "@/features/attendance/at-risk"
+import { getAppSettings } from "@/features/settings/queries"
 import { fullName, memberInitials } from "@/lib/names"
 import { formatPhone } from "@/lib/phone"
 import { can, requireViewer } from "@/lib/rbac"
@@ -24,7 +26,13 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
 
   const params = await searchParams
   const filters = parseMemberFilters(params)
-  const [{ total, members, counts }, blocks] = await Promise.all([listMembers(filters), listBlocks()])
+  const settings = await getAppSettings()
+  const atRisk = await membersAtRisk(settings.atRiskThreshold)
+  const missedById = new Map(atRisk.map((m) => [m.id, m.missed]))
+  const [{ total, members, counts }, blocks] = await Promise.all([
+    listMembers(filters, filters.risk ? [...missedById.keys()] : undefined),
+    listBlocks(),
+  ])
 
   const pages = Math.max(1, Math.ceil(total / MEMBER_PAGE_SIZE))
   const pageHref = (page: number) => {
@@ -37,7 +45,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
   }
   const first = total === 0 ? 0 : (filters.page - 1) * MEMBER_PAGE_SIZE + 1
   const last = Math.min(filters.page * MEMBER_PAGE_SIZE, total)
-  const filtered = !!(filters.q || filters.block || filters.position)
+  const filtered = !!(filters.q || filters.block || filters.position || filters.risk)
 
   return (
     <>
@@ -56,7 +64,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
       />
 
       <MembersToolbar
-        counts={counts}
+        counts={{ ...counts, atRisk: atRisk.length }}
         blocks={blocks}
         canExport={can(viewer, "member.export")}
         canPrintIds={can(viewer, "member.generate_id")}
@@ -106,6 +114,11 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
                             {isOfficer(m.position) && (
                               <span className="ml-2 rounded-full bg-accent px-2 py-0.5 text-[11px] font-semibold text-accent-foreground">
                                 {positionLabel(m.position)}
+                              </span>
+                            )}
+                            {missedById.has(m.id) && (
+                              <span className="ml-2 rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-semibold text-warning">
+                                Missed {missedById.get(m.id)}
                               </span>
                             )}
                             {!m.isActive && (

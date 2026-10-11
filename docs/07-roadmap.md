@@ -66,10 +66,12 @@ Each phase ends with something that can be deployed and tested.
 
 ## Phase 5 — Dashboard & Insights
 
-- [ ] Stat cards, attendance trend chart, next meeting card
-- [ ] Members at risk (configurable threshold)
-- [ ] Recent activity feed
-- [ ] Settings screen
+- [x] Dashboard on real data: active members, attendance trend (last 8 meetings, click-through), last-meeting rate + change, month average, new members, photos / ID cards progress
+- [x] Meeting card: meeting in progress (with Capture) → next scheduled meeting → "No upcoming meeting"
+- [x] Members at risk: consecutive missed **closed** meetings since the member was added (threshold in Settings); dashboard top 5 + Members "At risk" tab with "Missed N" badges
+- [x] Recent check-ins across meetings
+- [x] Settings page: usual meeting day, default title / start time / location (used by New meeting and Start today's meeting), at-risk threshold; changes audited
+- [x] Sample data removed
 
 ## Phase 6 — Hardening & Launch
 

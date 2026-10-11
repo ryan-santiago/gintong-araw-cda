@@ -46,21 +46,6 @@ Credentials are added phase by phase (see [docs/02-tech-stack.md](docs/02-tech-s
 | `scripts/copy-vendor-wasm.mjs`            | Runs on install; copies the WASM engines above                                               |
 | `scripts/generate-icons.mjs`              | `pnpm icons` — favicon / PWA icons from the logo                                             |
 
-## Deploying to Vercel
+## Deploying
 
-1. Push to GitHub (keep the repository **private** — it contains the ID templates with officers' signatures).
-2. In Vercel: **Add New → Project →** import the repo. Framework: Next.js. Install/build commands: defaults.
-3. **Environment variables** (Production + Preview):
-
-   | Name                                                                     | Value                                              |
-   | ------------------------------------------------------------------------ | -------------------------------------------------- |
-   | `DATABASE_URL`                                                           | Neon pooled connection string                      |
-   | `DIRECT_URL`                                                             | Neon direct connection string                      |
-   | `BETTER_AUTH_SECRET`                                                     | same as `.env.local`                               |
-   | `BETTER_AUTH_URL`                                                        | `https://gintongaraw.coderyan.dev`                 |
-   | `APP_URL`                                                                | `https://gintongaraw.coderyan.dev`                 |
-   | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` | same as `.env.local`                               |
-   | `ENABLE_EXPERIMENTAL_COREPACK`                                           | `1` (so Vercel uses pnpm 11 from `packageManager`) |
-
-4. **Domain:** Project → Settings → Domains → add `gintongaraw.coderyan.dev`, then at your DNS provider add the record Vercel shows (usually `CNAME gintongaraw → cname.vercel-dns.com`).
-5. **Database changes:** migrations are not run during the build. After adding a migration, apply it once with `pnpm exec prisma migrate deploy` (uses `DIRECT_URL`).
+Step-by-step guide (Vercel project, environment variables, Hostinger DNS for `gintongaraw.coderyan.dev`, smoke test, troubleshooting): **[docs/08-deployment.md](docs/08-deployment.md)**.

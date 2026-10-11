@@ -32,6 +32,7 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "attendance.capture": "Recorded attendance",
   "attendance.delete": "Removed attendance",
   "attendance.export": "Exported attendance",
+  "settings.update": "Changed settings",
 }
 
 export function auditActionLabel(action: string) {

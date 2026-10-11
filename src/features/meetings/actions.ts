@@ -1,6 +1,7 @@
 "use server"
 
 import { meetingIdSchema, meetingSchema, meetingStatusSchema, type MeetingInput } from "@/features/meetings/schema"
+import { getAppSettings } from "@/features/settings/queries"
 import { diff, writeAudit } from "@/lib/audit"
 import { dateToDay, dayToDate, formatManila, manilaDateTime, manilaToday } from "@/lib/dates"
 import { db } from "@/lib/db"
@@ -118,14 +119,17 @@ export const startMeetingToday = actionClient
   .inputSchema(meetingIdSchema.pick({}))
   .action(async ({ ctx: { viewer } }) => {
     const today = manilaToday()
+    const settings = await getAppSettings()
     return db.$transaction(async (tx) => {
       const existing = await tx.meeting.findFirst({ where: { date: dayToDate(today), status: { not: "CLOSED" } } })
       const meeting = existing
         ? await tx.meeting.update({ where: { id: existing.id }, data: { status: "OPEN", openedAt: new Date() } })
         : await tx.meeting.create({
             data: {
-              title: "General Assembly",
+              title: settings.meetingTitle,
               date: dayToDate(today),
+              startTime: settings.meetingTime ? manilaDateTime(today, settings.meetingTime) : null,
+              location: settings.meetingLocation || null,
               status: "OPEN",
               openedAt: new Date(),
               createdById: viewer.id,

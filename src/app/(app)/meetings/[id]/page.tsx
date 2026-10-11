@@ -74,7 +74,6 @@ export default async function MeetingPage({ params }: PageProps<"/meetings/[id]"
           {can(viewer, "meeting.manage") && (
             <>
               <MeetingFormDialog
-                defaultDate={day}
                 initial={{
                   id: meeting.id,
                   title: meeting.title,

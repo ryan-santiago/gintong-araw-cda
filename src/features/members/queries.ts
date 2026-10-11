@@ -26,6 +26,8 @@ export type MemberFilters = {
   status: MemberStatus
   block: string
   position: string
+  /** Only members flagged "at risk" (missed N meetings in a row). */
+  risk: boolean
   sort: MemberSort
   page: number
 }
@@ -40,19 +42,22 @@ export function parseMemberFilters(params: Record<string, string | string[] | un
     status: status === "inactive" || status === "all" ? status : "active",
     block: str("block").trim().toUpperCase().slice(0, 10),
     position: POSITION_FILTERS.includes(str("position")) ? str("position") : "",
+    risk: str("risk") === "1",
     sort: sort in MEMBER_SORTS ? (sort as MemberSort) : "name",
     page: Number.isFinite(page) && page > 0 ? page : 1,
   }
 }
 
 export function memberWhere(
-  filters: Pick<MemberFilters, "q" | "status" | "block" | "position">
+  filters: Pick<MemberFilters, "q" | "status" | "block" | "position">,
+  onlyIds?: string[]
 ): Prisma.MemberWhereInput {
   // Every word must match some field, so "juan dela cruz" and "2026-0012" both work.
   const words = filters.q.split(/\s+/).filter(Boolean).slice(0, 6)
   return {
     ...(filters.status === "active" ? { isActive: true } : filters.status === "inactive" ? { isActive: false } : {}),
     ...(filters.block ? { blockNumber: filters.block } : {}),
+    ...(onlyIds ? { id: { in: onlyIds } } : {}),
     ...(filters.position === "OFFICERS"
       ? { position: { not: "MEMBER" } }
       : filters.position
@@ -70,8 +75,8 @@ export function memberWhere(
   }
 }
 
-export async function listMembers(filters: MemberFilters) {
-  const where = memberWhere(filters)
+export async function listMembers(filters: MemberFilters, onlyIds?: string[]) {
+  const where = memberWhere(filters, onlyIds)
   const [total, members, counts] = await Promise.all([
     db.member.count({ where }),
     db.member.findMany({

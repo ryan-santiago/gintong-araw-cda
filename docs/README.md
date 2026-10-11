@@ -4,15 +4,16 @@ Responsive web app for the **Gintong Araw Community Development Association, Inc
 
 ## Documents
 
-| #   | Document                                           | What it covers                                                         |
-| --- | -------------------------------------------------- | ---------------------------------------------------------------------- |
-| 01  | [Product Requirements](01-product-requirements.md) | Goals, users, modules, functional rules, open decisions                |
-| 02  | [Tech Stack](02-tech-stack.md)                     | Frameworks, libraries, services, and why each was chosen               |
-| 03  | [Architecture](03-architecture.md)                 | Folder structure, request flow, security, photos, ID cards, QR, export |
-| 04  | [Database Schema](04-database-schema.md)           | Prisma schema for Neon PostgreSQL                                      |
-| 05  | [Roles & Permissions](05-roles-permissions.md)     | Permission catalog, rank hierarchy rules, default groups               |
-| 06  | [Design System](06-design-system.md)               | Color palette, typography, layout, components, dark mode               |
-| 07  | [Roadmap](07-roadmap.md)                           | Build phases and acceptance checklist                                  |
+| #   | Document                                           | What it covers                                                                  |
+| --- | -------------------------------------------------- | ------------------------------------------------------------------------------- |
+| 01  | [Product Requirements](01-product-requirements.md) | Goals, users, modules, functional rules, open decisions                         |
+| 02  | [Tech Stack](02-tech-stack.md)                     | Frameworks, libraries, services, and why each was chosen                        |
+| 03  | [Architecture](03-architecture.md)                 | Folder structure, request flow, security, photos, ID cards, QR, export          |
+| 04  | [Database Schema](04-database-schema.md)           | Prisma schema for Neon PostgreSQL                                               |
+| 05  | [Roles & Permissions](05-roles-permissions.md)     | Permission catalog, rank hierarchy rules, default groups                        |
+| 06  | [Design System](06-design-system.md)               | Color palette, typography, layout, components, dark mode                        |
+| 07  | [Roadmap](07-roadmap.md)                           | Build phases and acceptance checklist                                           |
+| 08  | [Deployment](08-deployment.md)                     | Vercel setup, environment variables, Hostinger DNS for gintongaraw.coderyan.dev |
 
 ## At a glance
 

@@ -27,23 +27,24 @@ import { meetingSchema, type MeetingInput } from "@/features/meetings/schema"
 
 export function MeetingFormDialog({
   initial,
-  defaultDate,
+  defaults,
   trigger,
 }: {
   initial?: MeetingInput & { id: string }
-  defaultDate: string
+  /** New-meeting defaults from Settings (date = next meeting day). */
+  defaults?: { date: string; title: string; startTime: string; location: string }
   trigger: React.ReactNode
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const defaults: MeetingInput = initial ?? {
-    title: "General Assembly",
-    date: defaultDate,
-    startTime: "",
-    location: "",
+  const values: MeetingInput = initial ?? {
+    title: defaults?.title ?? "General Assembly",
+    date: defaults?.date ?? "",
+    startTime: defaults?.startTime ?? "",
+    location: defaults?.location ?? "",
     notes: "",
   }
-  const form = useForm<MeetingInput>({ resolver: zodResolver(meetingSchema), defaultValues: defaults })
+  const form = useForm<MeetingInput>({ resolver: zodResolver(meetingSchema), defaultValues: values })
   const { execute, isPending, result, reset } = useAction(saveMeeting, {
     onSuccess: ({ data }) => {
       toast.success(initial ? "Meeting updated." : "Meeting created.")
@@ -60,7 +61,7 @@ export function MeetingFormDialog({
       onOpenChange={(v) => {
         setOpen(v)
         if (v) {
-          form.reset(defaults)
+          form.reset(values)
           reset()
         }
       }}

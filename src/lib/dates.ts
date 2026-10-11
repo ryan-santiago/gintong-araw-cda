@@ -21,10 +21,10 @@ export function manilaToday() {
   return formatManila(new Date(), "yyyy-MM-dd")
 }
 
-/** The next Sunday (today if it's Sunday) in Manila, as yyyy-MM-dd. */
-export function nextSundayManila() {
+/** The next given weekday (0 = Sunday; today if it matches) in Manila, as yyyy-MM-dd. */
+export function nextWeekdayManila(weekday: number) {
   const now = new TZDate(Date.now(), APP_TIME_ZONE)
-  const add = (7 - now.getDay()) % 7
+  const add = (weekday - now.getDay() + 7) % 7
   return format(new TZDate(now.getFullYear(), now.getMonth(), now.getDate() + add, APP_TIME_ZONE), "yyyy-MM-dd")
 }
 

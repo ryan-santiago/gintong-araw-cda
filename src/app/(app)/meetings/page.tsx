@@ -10,7 +10,8 @@ import { MeetingActions } from "@/features/meetings/components/meeting-actions"
 import { MeetingFormDialog } from "@/features/meetings/components/meeting-form-dialog"
 import { MeetingStatusBadge } from "@/features/meetings/components/meeting-status-badge"
 import { activeMemberCount, listMeetings } from "@/features/meetings/queries"
-import { formatDay, formatManila, nextSundayManila } from "@/lib/dates"
+import { getAppSettings } from "@/features/settings/queries"
+import { formatDay, formatManila, nextWeekdayManila } from "@/lib/dates"
 import { can, requireViewer } from "@/lib/rbac"
 
 export const metadata: Metadata = { title: "Meetings" }
@@ -19,7 +20,7 @@ export default async function MeetingsPage() {
   const viewer = await requireViewer()
   if (!can(viewer, "meeting.view")) return <NoAccess what="meetings" />
 
-  const [meetings, active] = await Promise.all([listMeetings(), activeMemberCount()])
+  const [meetings, active, settings] = await Promise.all([listMeetings(), activeMemberCount(), getAppSettings()])
   const canManage = can(viewer, "meeting.manage")
   const canCapture = can(viewer, "attendance.capture")
 
@@ -31,7 +32,12 @@ export default async function MeetingsPage() {
         actions={
           canManage && (
             <MeetingFormDialog
-              defaultDate={nextSundayManila()}
+              defaults={{
+                date: nextWeekdayManila(settings.meetingDay),
+                title: settings.meetingTitle,
+                startTime: settings.meetingTime,
+                location: settings.meetingLocation,
+              }}
               trigger={
                 <Button size="lg">
                   <Plus /> New meeting
