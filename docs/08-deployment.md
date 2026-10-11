@@ -63,7 +63,7 @@ Do **not** add `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` — the database is al
 ## Part 4 — First deploy
 
 1. Click **Deploy**.
-2. Watch the build log. You should see these lines during install — they confirm the setup scripts ran:
+2. Watch the build log. You should see these lines (they run during the build step) — they confirm the generated files were created:
    ```
    ✔ Generated Prisma Client (7.10.0) …
    ✔ MediaPipe wasm → public/mediapipe/wasm
@@ -182,13 +182,14 @@ No CAA records at all? Skip this — certificates work by default.
 
 ## Part 10 — Troubleshooting
 
-| Symptom                                            | Cause → fix                                                                                                                                                                                                |
-| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Build fails at **install** or **prisma generate**  | `ENABLE_EXPERIMENTAL_COREPACK=1` missing → add it and redeploy.                                                                                                                                            |
-| Build fails with **Invalid environment variables** | A required variable is missing or empty → compare with Part 3.                                                                                                                                             |
-| Sign-in shows **Invalid origin**                   | You're on the `.vercel.app` or a preview URL, or `BETTER_AUTH_URL` doesn't exactly match `https://gintongaraw.coderyan.dev`.                                                                               |
-| Domain stuck on **Invalid Configuration**          | Record name typed as the full domain; a conflicting A/CNAME for `gintongaraw` still exists; DNS is managed somewhere other than Hostinger (6.1); or propagation is still running — wait up to a few hours. |
-| **Certificate** error / "not secure"               | Usually resolves within minutes of the domain becoming valid. If you have CAA records, see 6.5.                                                                                                            |
-| Member photos don't load / upload fails            | Check the four `R2_*` variables.                                                                                                                                                                           |
-| Camera doesn't open on phones                      | Make sure you're on `https://gintongaraw.coderyan.dev` (not http, not an IP address), and allow camera access when Safari asks.                                                                            |
-| QR on a card opens `localhost`                     | The card was generated before `APP_URL` was set — regenerate it on the live site.                                                                                                                          |
+| Symptom                                                        | Cause → fix                                                                                                                                                                                                                |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Build fails at **install** or **prisma generate**              | `ENABLE_EXPERIMENTAL_COREPACK=1` missing → add it and redeploy.                                                                                                                                                            |
+| Build fails with **Can't resolve '@/generated/prisma/client'** | Vercel reused cached `node_modules` and skipped install scripts. Fixed: `pnpm build` now runs `prisma generate` and the WASM copy itself. If it ever recurs: Deployments → Redeploy → untick **Use existing Build Cache**. |
+| Build fails with **Invalid environment variables**             | A required variable is missing or empty → compare with Part 3.                                                                                                                                                             |
+| Sign-in shows **Invalid origin**                               | You're on the `.vercel.app` or a preview URL, or `BETTER_AUTH_URL` doesn't exactly match `https://gintongaraw.coderyan.dev`.                                                                                               |
+| Domain stuck on **Invalid Configuration**                      | Record name typed as the full domain; a conflicting A/CNAME for `gintongaraw` still exists; DNS is managed somewhere other than Hostinger (6.1); or propagation is still running — wait up to a few hours.                 |
+| **Certificate** error / "not secure"                           | Usually resolves within minutes of the domain becoming valid. If you have CAA records, see 6.5.                                                                                                                            |
+| Member photos don't load / upload fails                        | Check the four `R2_*` variables.                                                                                                                                                                                           |
+| Camera doesn't open on phones                                  | Make sure you're on `https://gintongaraw.coderyan.dev` (not http, not an IP address), and allow camera access when Safari asks.                                                                                            |
+| QR on a card opens `localhost`                                 | The card was generated before `APP_URL` was set — regenerate it on the live site.                                                                                                                                          |
