@@ -1,0 +1,49 @@
+# ── Dependencies ────────────────────────────────────────────
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# ── Next.js / build output ──────────────────────────────────
+/.next/
+/out/
+/build
+*.tsbuildinfo
+next-env.d.ts
+
+# ── Environment & secrets (never commit) ────────────────────
+.env*
+!.env.example
+*.pem
+
+# ── Generated on install / build ────────────────────────────
+# Prisma client (pnpm install → prisma generate)
+/src/generated/
+# Browser WASM engines (pnpm install → scripts/copy-vendor-wasm.mjs)
+/public/mediapipe/wasm/
+/public/zxing/
+
+# ── Testing ─────────────────────────────────────────────────
+/coverage
+/playwright-report/
+/test-results/
+
+# ── Vercel ──────────────────────────────────────────────────
+.vercel
+
+# ── Logs ────────────────────────────────────────────────────
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ── OS / editors ────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+*.swp

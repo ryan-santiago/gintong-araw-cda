@@ -1,0 +1,6 @@
+pnpm-lock.yaml
+src/generated
+.next
+docs/design/preview.html
+public/mediapipe
+public/zxing
