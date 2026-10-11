@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
 import Image from "next/image"
+import Link from "next/link"
 import { BadgeCheck, CalendarCheck, CircleAlert, MapPin, UserRound } from "lucide-react"
 
 import { Skeleton } from "@/components/ui/skeleton"
@@ -28,7 +29,10 @@ export default function PublicMemberPage({ params }: PageProps<"/m/[token]">) {
           <MemberCard params={params} />
         </Suspense>
         <p className="px-2 text-center text-xs text-muted-foreground">
-          This page is for the member named on the card. If you found this ID, please return it to the HOA office.
+          This page is for the member named on the card. If you found this ID, please return it to the HOA office.{" "}
+          <Link href="/privacy" className="underline underline-offset-2">
+            Data Privacy Notice
+          </Link>
         </p>
       </div>
     </main>

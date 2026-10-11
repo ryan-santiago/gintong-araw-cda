@@ -1,7 +1,7 @@
 # Gintong Araw CDA — Member Management System
 
 Specs live in `docs/` and are the source of truth. Read the relevant doc before building a module:
-`docs/01-product-requirements.md` · `02-tech-stack.md` · `03-architecture.md` · `04-database-schema.md` · `05-roles-permissions.md` · `06-design-system.md` · `07-roadmap.md`
+`docs/01-product-requirements.md` · `02-tech-stack.md` · `03-architecture.md` · `04-database-schema.md` · `05-roles-permissions.md` · `06-design-system.md` · `07-roadmap.md` · `08-deployment.md` · `09-user-guide.md` · `10-backup-restore.md`
 
 ## Stack
 
@@ -31,6 +31,7 @@ Next.js 16.4 (App Router, TS strict) · React 19.3 · Tailwind v4 · shadcn/ui �
 - Member CRUD: `src/features/members/` (actions, queries, schema, components). Addresses are PSGC codes resolved to names on the server (`features/members/psgc.ts`); lists come from `/api/psgc`.
 - Photos: `POST|DELETE /api/members/[id]/photo` (sharp → 600px + 128px WebP, EXIF stripped) stored in R2 under `members/{id}/`; read with `signedUrl()` from `src/lib/r2.ts` (hour-stable signatures so browsers cache).
 - Export: `/api/members/export?format=xlsx|csv` with the list filters.
+- Import: `/members/import` → `/api/members/import` (GET template; POST preview, `commit=1` inserts). Parsing/validation in `features/members/import.ts`; DB fields from `toMemberRecord()` (`features/members/record.ts`), shared with the create/update actions.
 - Route handlers authorize with `apiViewer(permission)` from `src/lib/api.ts`.
 
 ## ID cards (Phase 3)
@@ -72,4 +73,5 @@ Next.js 16.4 (App Router, TS strict) · React 19.3 · Tailwind v4 · shadcn/ui �
 
 - `pnpm dev` · `pnpm build` · `pnpm lint` · `pnpm typecheck` · `pnpm format`
 - `pnpm db:migrate` · `pnpm db:seed` · `pnpm db:seed:psgc` · `pnpm db:studio` · `pnpm icons`
-- Tests (`pnpm test`, `pnpm e2e`) are added in Phase 6.
+- `pnpm test` runs Vitest unit tests in `tests/unit` (pure logic only; `server-only` is aliased to a stub, mock `@/env`/`@/lib/db` when needed).
+- Login redirects go through `safeRedirectPath()` (`src/lib/safe-redirect.ts`). Security headers + CSP live in `next.config.ts`; add any new external origin there.

@@ -115,6 +115,13 @@ export function RegisterForm() {
           {isSubmitting ? <Loader2 className="animate-spin" /> : <UserPlus />}
           Request account
         </Button>
+        <p className="text-center text-xs text-muted-foreground">
+          By requesting an account you agree to our{" "}
+          <Link href="/privacy" className="underline underline-offset-2">
+            Data Privacy Notice
+          </Link>
+          .
+        </p>
         <p className="text-center text-sm">
           Already approved?{" "}
           <Link

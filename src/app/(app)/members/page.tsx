@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ChevronLeft, ChevronRight, Plus, Users } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, Upload, Users } from "lucide-react"
 
 import { NoAccess } from "@/components/shared/no-access"
 import { PageHeader } from "@/components/shared/page-header"
@@ -54,11 +54,18 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
         description="One record per household. Search by name, tracking number or phone."
         actions={
           can(viewer, "member.create") && (
-            <Button asChild size="lg">
-              <Link href="/members/new">
-                <Plus /> Add member
-              </Link>
-            </Button>
+            <>
+              <Button asChild size="lg" variant="outline">
+                <Link href="/members/import">
+                  <Upload /> Import
+                </Link>
+              </Button>
+              <Button asChild size="lg">
+                <Link href="/members/new">
+                  <Plus /> Add member
+                </Link>
+              </Button>
+            </>
           )
         }
       />

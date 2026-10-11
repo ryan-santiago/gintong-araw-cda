@@ -3,40 +3,20 @@
 import { z } from "zod"
 
 import { positionLabel } from "@/features/members/positions"
-import { resolveAddress } from "@/features/members/psgc"
 import { nextTrackingNumber } from "@/features/members/queries"
+import { toMemberRecord } from "@/features/members/record"
 import { blockLotSchema, memberIdSchema, memberSchema, type MemberInput } from "@/features/members/schema"
 import { diff, writeAudit } from "@/lib/audit"
 import { generateCardToken } from "@/lib/card-link"
 import { db } from "@/lib/db"
 import { fullName } from "@/lib/names"
-import { normalizePhone } from "@/lib/phone"
 import { ActionError } from "@/lib/rbac"
 import { actionClient } from "@/lib/safe-action"
 
-const day = (v: string) => (v ? new Date(`${v}T00:00:00.000Z`) : null)
-const text = (v: string) => (v ? v : null)
-
 async function toRecord(input: MemberInput) {
-  const address = await resolveAddress(input)
-  if (!address) throw new ActionError("The selected address is no longer valid. Please choose it again.")
-  return {
-    trackingNumber: input.trackingNumber,
-    firstName: input.firstName,
-    middleName: text(input.middleName),
-    lastName: input.lastName,
-    suffix: text(input.suffix),
-    position: input.position,
-    birthDate: day(input.birthDate),
-    memberSince: day(input.memberSince),
-    blockNumber: input.blockNumber,
-    lotNumber: input.lotNumber,
-    contactNumber: input.contactNumber ? normalizePhone(input.contactNumber) : null,
-    email: text(input.email),
-    addressLine: text(input.addressLine),
-    zipCode: text(input.zipCode),
-    ...address,
-  }
+  const record = await toMemberRecord(input)
+  if (!record) throw new ActionError("The selected address is no longer valid. Please choose it again.")
+  return record
 }
 
 type AuditSource = {

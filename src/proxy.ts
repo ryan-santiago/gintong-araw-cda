@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server"
 // Optimistic check only: sends visitors without a session cookie to /login.
 // The real session + permission checks happen in requireViewer()/requirePermission().
 // "/m" = public member card page (QR link on the ID).
-const PUBLIC_PATHS = ["/login", "/register", "/pending", "/m"]
+const PUBLIC_PATHS = ["/login", "/register", "/pending", "/m", "/privacy"]
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl

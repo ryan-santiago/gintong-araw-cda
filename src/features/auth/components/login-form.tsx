@@ -14,10 +14,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input"
 import { loginSchema, type LoginInput } from "@/features/auth/schema"
 import { authClient } from "@/lib/auth-client"
-
-function safeNext(value: string | null) {
-  return value && value.startsWith("/") && !value.startsWith("//") ? value : "/dashboard"
-}
+import { safeRedirectPath } from "@/lib/safe-redirect"
 
 function messageFor(error: { code?: string; message?: string; status?: number }) {
   if (error.status === 429) return "Too many sign-in attempts. Please wait a minute and try again."
@@ -43,7 +40,7 @@ export function LoginForm() {
       setFormError(messageFor(error) ?? null)
       return
     }
-    router.replace(safeNext(searchParams.get("next")))
+    router.replace(safeRedirectPath(searchParams.get("next")))
     router.refresh()
   }
 

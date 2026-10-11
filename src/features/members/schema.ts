@@ -20,47 +20,48 @@ const optionalDay = (label: string) =>
     .refine((v) => v === "" || v >= "1900-01-01", `Enter a valid ${label}.`)
     .refine((v) => v === "" || v <= todayIso(), `${label[0]!.toUpperCase()}${label.slice(1)} can't be in the future.`)
 
-export const memberSchema = z
-  .object({
-    firstName: z.string().trim().min(1, "Enter the first name.").max(60),
-    middleName: optionalText(60),
-    lastName: z.string().trim().min(1, "Enter the last name.").max(60),
-    suffix: optionalText(10),
-    position: z.enum(POSITION_VALUES, { error: "Choose a position." }),
-    birthDate: optionalDay("date of birth"),
-    memberSince: optionalDay("member since date"),
+/** Field rules without the "address must be complete" check (the importer keeps unmatched addresses as text). */
+export const memberFieldsSchema = z.object({
+  firstName: z.string().trim().min(1, "Enter the first name.").max(60),
+  middleName: optionalText(60),
+  lastName: z.string().trim().min(1, "Enter the last name.").max(60),
+  suffix: optionalText(10),
+  position: z.enum(POSITION_VALUES, { error: "Choose a position." }),
+  birthDate: optionalDay("date of birth"),
+  memberSince: optionalDay("member since date"),
 
-    trackingNumber: z.string().trim().regex(TRACKING_NUMBER_PATTERN, "Use the format YYYY-NNNN, e.g. 2026-0001."),
-    blockNumber: z.string().trim().min(1, "Enter the block number.").max(10).toUpperCase(),
-    lotNumber: z.string().trim().min(1, "Enter the lot number.").max(10).toUpperCase(),
+  trackingNumber: z.string().trim().regex(TRACKING_NUMBER_PATTERN, "Use the format YYYY-NNNN, e.g. 2026-0001."),
+  blockNumber: z.string().trim().min(1, "Enter the block number.").max(10).toUpperCase(),
+  lotNumber: z.string().trim().min(1, "Enter the lot number.").max(10).toUpperCase(),
 
-    contactNumber: z
-      .string()
-      .trim()
-      .refine((v) => v === "" || normalizePhone(v) !== null, "Enter a valid PH number, e.g. 0917 123 4567."),
-    email: z
-      .string()
-      .trim()
-      .toLowerCase()
-      .refine((v) => v === "" || z.email().safeParse(v).success, "Enter a valid email address."),
+  contactNumber: z
+    .string()
+    .trim()
+    .refine((v) => v === "" || normalizePhone(v) !== null, "Enter a valid PH number, e.g. 0917 123 4567."),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .refine((v) => v === "" || z.email().safeParse(v).success, "Enter a valid email address."),
 
-    addressLine: optionalText(160),
-    regionCode: z.string().trim(),
-    provinceCode: z.string().trim(),
-    cityCode: z.string().trim(),
-    barangayCode: z.string().trim(),
-    zipCode: z
-      .string()
-      .trim()
-      .refine((v) => v === "" || /^\d{4}$/.test(v), "ZIP codes have 4 digits."),
-  })
-  .superRefine((v, ctx) => {
-    const anyAddress = v.addressLine || v.regionCode || v.cityCode || v.barangayCode || v.zipCode
-    if (!anyAddress) return
-    if (!v.regionCode) ctx.addIssue({ code: "custom", path: ["regionCode"], message: "Choose a region." })
-    if (!v.cityCode) ctx.addIssue({ code: "custom", path: ["cityCode"], message: "Choose a city or municipality." })
-    if (!v.barangayCode) ctx.addIssue({ code: "custom", path: ["barangayCode"], message: "Choose a barangay." })
-  })
+  addressLine: optionalText(160),
+  regionCode: z.string().trim(),
+  provinceCode: z.string().trim(),
+  cityCode: z.string().trim(),
+  barangayCode: z.string().trim(),
+  zipCode: z
+    .string()
+    .trim()
+    .refine((v) => v === "" || /^\d{4}$/.test(v), "ZIP codes have 4 digits."),
+})
+
+export const memberSchema = memberFieldsSchema.superRefine((v, ctx) => {
+  const anyAddress = v.addressLine || v.regionCode || v.cityCode || v.barangayCode || v.zipCode
+  if (!anyAddress) return
+  if (!v.regionCode) ctx.addIssue({ code: "custom", path: ["regionCode"], message: "Choose a region." })
+  if (!v.cityCode) ctx.addIssue({ code: "custom", path: ["cityCode"], message: "Choose a city or municipality." })
+  if (!v.barangayCode) ctx.addIssue({ code: "custom", path: ["barangayCode"], message: "Choose a barangay." })
+})
 
 export type MemberInput = z.infer<typeof memberSchema>
 

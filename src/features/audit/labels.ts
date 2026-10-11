@@ -22,6 +22,7 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "member.photo_update": "Changed member photo",
   "member.photo_remove": "Removed member photo",
   "member.export": "Exported members",
+  "member.import": "Imported members",
   "member.id_generate": "Generated ID card",
   "member.card_reissue": "Reissued ID card (old card cancelled)",
   "meeting.create": "Created meeting",

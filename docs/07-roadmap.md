@@ -75,11 +75,14 @@ Each phase ends with something that can be deployed and tested.
 
 ## Phase 6 — Hardening & Launch
 
-- [ ] Playwright E2E for the main flows; Vitest for RBAC, QR, exports
-- [ ] Security headers/CSP; permission review of every action
-- [ ] Data Privacy notice page (informational)
-- [ ] Load real member data (import from spreadsheet if available)
-- [ ] Neon backup/restore drill; officer user guide (1–2 pages)
+- [x] Vitest unit tests (`pnpm test`): RBAC, card links/QR, redirects, dates, names, phones, member schema
+- [ ] Playwright E2E for the main flows (needs a separate Neon test branch)
+- [x] Security headers/CSP; permission review of every action
+- [x] Data Privacy notice page (informational)
+- [x] Member import from Excel/CSV with validation preview
+- [ ] Load real member data
+- [x] Officer user guide (`09-user-guide.md`) and backup/restore runbook (`10-backup-restore.md`)
+- [ ] First restore drill
 
 ## Later
 

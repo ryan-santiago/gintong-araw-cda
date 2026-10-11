@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link"
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -52,7 +53,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">{children}</div>
         <p className="text-center text-xs text-muted-foreground">
-          Gintong Araw Community Development Association, Inc.
+          Gintong Araw Community Development Association, Inc. ·{" "}
+          <Link href="/privacy" className="underline-offset-4 hover:underline">
+            Data Privacy Notice
+          </Link>
         </p>
       </main>
     </div>
