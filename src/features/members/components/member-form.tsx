@@ -57,12 +57,22 @@ export function MemberForm({
   })
   const conflicts = useAction(findBlockLotConflicts)
 
-  // New member: suggest a tracking number and reuse the last address entered on this device.
-  useEffect(() => {
-    if (isEdit) return
+  // New member: blank fields, the last address entered on this device, and a suggested tracking number.
+  function resetFields() {
+    form.reset({ ...emptyMember, ...readLastAddress() })
     suggest.execute({})
-    const last = readLastAddress()
-    for (const key of ADDRESS_KEYS) if (last[key]) form.setValue(key, last[key] as string)
+  }
+
+  // After adding, clear everything for the next "Add member" (this page stays mounted while hidden).
+  function startNew() {
+    resetFields()
+    setPhoto({ kind: "keep" })
+    setFormError(null)
+    conflicts.reset()
+  }
+
+  useEffect(() => {
+    if (!isEdit) resetFields()
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
   }, [])
 
@@ -114,6 +124,7 @@ export function MemberForm({
       }
       const photoOk = await savePhoto(id)
       if (photoOk) toast.success(isEdit ? "Member updated." : "Member added.")
+      if (!isEdit) startNew()
       router.push(`/members/${id}`)
       router.refresh()
     } finally {
