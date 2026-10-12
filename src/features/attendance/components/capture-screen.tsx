@@ -3,20 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { setZXingModuleOverrides, Scanner, type IDetectedBarcode } from "@yudiel/react-qr-scanner"
-import {
-  CameraOff,
-  Check,
-  CircleAlert,
-  Keyboard,
-  Loader2,
-  QrCode,
-  Search,
-  TriangleAlert,
-  UserRound,
-} from "lucide-react"
+import { Check, CircleAlert, Keyboard, Loader2, QrCode, Search, TriangleAlert, UserRound } from "lucide-react"
 import { useAction } from "next-safe-action/hooks"
 
+import { QrCamera, beep } from "@/components/shared/qr-camera"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -30,57 +20,8 @@ import {
 } from "@/features/attendance/actions"
 import { cn } from "@/lib/utils"
 
-// QR decoding falls back to a WASM reader on browsers without a native BarcodeDetector (e.g. iPhone).
-// Serve it from our own domain instead of a public CDN (copied by scripts/copy-vendor-wasm.mjs).
-setZXingModuleOverrides({
-  locateFile: (file: string, prefix: string) => (file.endsWith(".wasm") ? "/zxing/zxing_reader.wasm" : prefix + file),
-})
-
 const time = new Intl.DateTimeFormat("en-PH", { timeZone: "Asia/Manila", hour: "numeric", minute: "2-digit" })
 const fmt = (iso: string) => time.format(new Date(iso))
-const SAME_CODE_COOLDOWN_MS = 3000
-
-function cameraErrorMessage(kind: string | undefined) {
-  if (typeof window !== "undefined" && !window.isSecureContext) kind = "insecure-context"
-  switch (kind) {
-    case "insecure-context":
-      return "The camera needs a secure (https://) connection. Open the app from its https:// address, or use manual entry."
-    case "permission-denied":
-      return "Camera access was blocked. Allow the camera for this site in your browser settings, or use manual entry."
-    case "no-camera":
-      return "No camera was found on this device. Use manual entry."
-    case "in-use":
-      return "The camera is being used by another app. Close it and try again, or use manual entry."
-    default:
-      return "The camera couldn't start. Reload the page to try again, or use manual entry."
-  }
-}
-
-// ─── Feedback: short tones + vibration ─────────────────────────────────────────
-
-let audio: AudioContext | null = null
-function beep(kind: "ok" | "warn" | "error") {
-  try {
-    audio ??= new AudioContext()
-    const tones = kind === "ok" ? [880, 1320] : kind === "warn" ? [660, 660] : [220]
-    tones.forEach((freq, i) => {
-      const osc = audio!.createOscillator()
-      const gain = audio!.createGain()
-      osc.type = kind === "error" ? "square" : "sine"
-      osc.frequency.value = freq
-      const start = audio!.currentTime + i * 0.13
-      gain.gain.setValueAtTime(0.0001, start)
-      gain.gain.exponentialRampToValueAtTime(0.25, start + 0.01)
-      gain.gain.exponentialRampToValueAtTime(0.0001, start + (kind === "error" ? 0.35 : 0.11))
-      osc.connect(gain).connect(audio!.destination)
-      osc.start(start)
-      osc.stop(start + 0.4)
-    })
-    navigator.vibrate?.(kind === "ok" ? 60 : kind === "warn" ? [60, 60, 60] : 250)
-  } catch {
-    // Sound is a nice-to-have.
-  }
-}
 
 type Status = {
   status: string
@@ -102,9 +43,6 @@ export function CaptureScreen({
   const [mode, setMode] = useState<"scan" | "manual">("scan")
   const [result, setResult] = useState<CaptureResult | null>(null)
   const [status, setStatus] = useState<Status>(initialStatus)
-  const [cameraError, setCameraError] = useState<string | null>(null)
-  const busy = useRef(false)
-  const lastCode = useRef<{ text: string; at: number } | null>(null)
 
   const statusAction = useAction(getCaptureStatus, {
     onSuccess: ({ data }) => data && setStatus(data as Status),
@@ -127,20 +65,10 @@ export function CaptureScreen({
     refreshStatus()
   }
 
-  async function onScan(codes: IDetectedBarcode[]) {
-    const text = codes[0]?.rawValue
-    if (!text || busy.current) return
-    const now = Date.now()
-    if (lastCode.current && lastCode.current.text === text && now - lastCode.current.at < SAME_CODE_COOLDOWN_MS) return
-    lastCode.current = { text, at: now }
-    busy.current = true
-    try {
-      const res = await byCard.executeAsync({ meetingId: meeting.id, text })
-      if (res?.data) show(res.data)
-      else show({ status: "invalid", message: res?.serverError ?? "Couldn't record attendance. Try again." })
-    } finally {
-      busy.current = false
-    }
+  async function onScan(text: string) {
+    const res = await byCard.executeAsync({ meetingId: meeting.id, text })
+    if (res?.data) show(res.data)
+    else show({ status: "invalid", message: res?.serverError ?? "Couldn't record attendance. Try again." })
   }
 
   async function checkIn(memberId: string) {
@@ -227,39 +155,9 @@ export function CaptureScreen({
 
         {mode === "scan" ? (
           <Card className="overflow-hidden p-0">
-            {cameraError ? (
-              <div className="grid aspect-square place-items-center content-center gap-3 bg-black p-6 text-center text-sm text-white/80 sm:aspect-video">
-                <CameraOff className="mx-auto size-8" />
-                <p>{cameraError}</p>
-                <Button variant="secondary" onClick={() => setMode("manual")}>
-                  <Keyboard /> Use manual entry
-                </Button>
-              </div>
-            ) : (
-              <div className="relative aspect-square max-h-[58svh] w-full bg-black sm:aspect-video">
-                <Scanner
-                  onScan={onScan}
-                  onError={(e) => {
-                    console.warn("QR scanner error", e?.kind, e?.message, e?.cause)
-                    setCameraError(cameraErrorMessage(e?.kind))
-                  }}
-                  // Only "ideal" sizes: the library default demands min 640px height, which rejects 480p webcams.
-                  constraints={{ facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }}
-                  formats={["qr_code"]}
-                  allowMultiple
-                  scanDelay={500}
-                  sound={false}
-                  paused={closed}
-                  components={{ finder: true, torch: false, zoom: false, onOff: false }}
-                  styles={{ container: { width: "100%", height: "100%" }, video: { objectFit: "cover" } }}
-                />
-                {(result || byCard.isPending) && (
-                  <div className="absolute inset-x-3 bottom-3 z-10">
-                    <ResultCard result={result} pending={byCard.isPending} overlay />
-                  </div>
-                )}
-              </div>
-            )}
+            <QrCamera onCode={onScan} paused={closed} onManual={() => setMode("manual")}>
+              {(result || byCard.isPending) && <ResultCard result={result} pending={byCard.isPending} overlay />}
+            </QrCamera>
           </Card>
         ) : (
           <ManualSearch meetingId={meeting.id} onPick={checkIn} disabled={closed || manual.isPending} />

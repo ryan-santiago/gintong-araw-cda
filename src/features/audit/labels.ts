@@ -33,6 +33,11 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "attendance.capture": "Recorded attendance",
   "attendance.delete": "Removed attendance",
   "attendance.export": "Exported attendance",
+  "contribution.record": "Recorded payment",
+  "contribution.void": "Voided payment",
+  "contribution.import": "Imported payments",
+  "contribution.export": "Exported contributions",
+  "contribution.schedule_update": "Changed contribution rates",
   "settings.update": "Changed settings",
 }
 
@@ -47,6 +52,7 @@ export function auditActionTone(action: string) {
     action.endsWith(".reject") ||
     action.endsWith(".suspend") ||
     action.endsWith(".deactivate") ||
+    action.endsWith(".void") ||
     action.endsWith("_remove")
   )
     return "danger"
@@ -55,7 +61,8 @@ export function auditActionTone(action: string) {
     action.endsWith(".create") ||
     action.endsWith(".approve") ||
     action.endsWith(".register") ||
-    action.endsWith(".restore")
+    action.endsWith(".restore") ||
+    action.endsWith(".record")
   )
     return "success"
   return "gold"

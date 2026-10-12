@@ -3,6 +3,7 @@ import { toMemberRecord } from "@/features/members/record"
 import { apiViewer } from "@/lib/api"
 import { writeAudit } from "@/lib/audit"
 import { generateCardToken } from "@/lib/card-link"
+import { summarizeImport } from "@/lib/import-types"
 import { db } from "@/lib/db"
 
 const MAX_BYTES = 2 * 1024 * 1024
@@ -37,13 +38,7 @@ export async function POST(request: Request) {
   if ("error" in read) return Response.json({ error: read.error }, { status: 422 })
 
   const rows = await validateImportRows(read.rows)
-  const summary = {
-    total: rows.length,
-    ok: rows.filter((r) => r.status === "ok").length,
-    errors: rows.filter((r) => r.status === "error").length,
-    duplicates: rows.filter((r) => r.status === "duplicate").length,
-    warnings: rows.filter((r) => r.warnings.length).length,
-  }
+  const summary = summarizeImport(rows)
   if (form?.get("commit") !== "1") {
     const view = rows.map((r) => ({ ...r, input: undefined }))
     return Response.json({ summary, rows: view, maxRows: IMPORT_MAX_ROWS })

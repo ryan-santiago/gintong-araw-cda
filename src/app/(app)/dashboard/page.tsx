@@ -18,6 +18,7 @@ import { NoAccess } from "@/components/shared/no-access"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ContributionsSummaryCard } from "@/features/contributions/components/contributions-summary-card"
 import { AttendanceTrendCard } from "@/features/dashboard/components/attendance-trend-card"
 import { getDashboardData } from "@/features/dashboard/queries"
 import { MemberAvatar } from "@/features/members/components/member-avatar"
@@ -184,6 +185,10 @@ export default async function DashboardPage() {
             </div>
           </CardContent>
         </Card>
+
+        {can(viewer, "contribution.view") && (
+          <ContributionsSummaryCard canCollect={can(viewer, "contribution.collect")} />
+        )}
 
         {/* Recent check-ins */}
         <Card className="lg:col-span-12">

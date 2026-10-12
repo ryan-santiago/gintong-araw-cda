@@ -26,6 +26,20 @@ describe("member import file reading", () => {
     expect(read.rows[1]).toMatchObject({ trackingNumber: "2026-0002", lastName: "Santos", blockNumber: "4" })
   })
 
+  it("keeps CSV dates as written in a UTC+8 timezone", async () => {
+    const tz = process.env.TZ
+    process.env.TZ = "Asia/Manila" // the bug only shows east of UTC
+    try {
+      const read = await readImportFile(
+        csv("Tracking No.,Last Name,First Name,Block,Lot,Member Since\n2026-0001,Cruz,Juan,3,12,2026-01-01\n")
+      )
+      if ("error" in read) throw new Error(read.error)
+      expect(read.rows[0]).toMatchObject({ memberSince: "2026-01-01", lotNumber: "12" })
+    } finally {
+      process.env.TZ = tz
+    }
+  })
+
   it("rejects a file without the required columns", async () => {
     const read = await readImportFile(csv("Name,Address\nJuan,Somewhere\n"))
     expect(read).toHaveProperty("error")

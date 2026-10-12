@@ -8,6 +8,7 @@ import { ArrowLeft, CalendarCheck, Mail, MapPin, Phone, UserRound } from "lucide
 import { NoAccess } from "@/components/shared/no-access"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { MemberContributionsCard } from "@/features/contributions/components/member-contributions-card"
 import { MemberDetailActions } from "@/features/members/components/member-detail-actions"
 import { isOfficer, positionLabel } from "@/features/members/positions"
 import { getMember } from "@/features/members/queries"
@@ -127,6 +128,20 @@ export default async function MemberPage({ params }: PageProps<"/members/[id]">)
               </dl>
             </CardContent>
           </Card>
+
+          {can(viewer, "contribution.view") && (
+            <MemberContributionsCard
+              member={{
+                id: member.id,
+                name,
+                memberSince: member.memberSince,
+                isActive: member.isActive,
+                deletedAt: member.deletedAt,
+              }}
+              canCollect={can(viewer, "contribution.collect")}
+              canVoid={can(viewer, "contribution.void")}
+            />
+          )}
 
           <Card>
             <CardHeader>

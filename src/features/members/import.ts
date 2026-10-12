@@ -1,12 +1,12 @@
 import "server-only"
 
-import { Readable } from "node:stream"
-
 import ExcelJS from "exceljs"
 
 import { MEMBER_POSITIONS, type MemberPositionValue } from "@/features/members/positions"
 import { memberFieldsSchema, type MemberInput } from "@/features/members/schema"
 import { db } from "@/lib/db"
+import type { ImportRow as BaseImportRow } from "@/lib/import-types"
+import { norm, readSheet, templateSheet, toDay, type SheetRow } from "@/lib/spreadsheet"
 
 export const IMPORT_MAX_ROWS = 1000
 
@@ -31,85 +31,14 @@ export const IMPORT_COLUMNS = [
   { key: "zipCode", header: "ZIP", aliases: ["zip code", "postal code"], required: false },
 ] as const
 
-type ColumnKey = (typeof IMPORT_COLUMNS)[number]["key"]
-type RawRow = Partial<Record<ColumnKey, string>>
+type RawRow = SheetRow<typeof IMPORT_COLUMNS>
 
-export type ImportRow = {
-  row: number // spreadsheet row number
-  status: "ok" | "error" | "duplicate"
-  name: string
-  trackingNumber: string
-  errors: string[]
-  warnings: string[]
-  input?: MemberInput
-}
-
-const norm = (s: string) =>
-  s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim()
+export type ImportRow = BaseImportRow<MemberInput>
 
 // ─── Reading the file ──────────────────────────────────────────────────────────
 
-function cellText(value: ExcelJS.CellValue): string {
-  if (value == null) return ""
-  if (value instanceof Date) return value.toISOString().slice(0, 10) // Excel dates come back as UTC midnight
-  if (typeof value === "object") {
-    if ("text" in value && typeof value.text === "string") return value.text.trim()
-    if ("richText" in value)
-      return value.richText
-        .map((r) => r.text)
-        .join("")
-        .trim()
-    if ("result" in value && value.result != null) return cellText(value.result as ExcelJS.CellValue)
-    return ""
-  }
-  return String(value).trim()
-}
-
-export async function readImportFile(file: File): Promise<{ rows: RawRow[]; firstRow: number } | { error: string }> {
-  const buffer = Buffer.from(await file.arrayBuffer())
-  const workbook = new ExcelJS.Workbook()
-  try {
-    if (/\.csv$/i.test(file.name) || file.type === "text/csv") {
-      await workbook.csv.read(Readable.from(buffer.toString("utf8").replace(/^﻿/, "")))
-    } else {
-      await workbook.xlsx.load(buffer as unknown as ArrayBuffer)
-    }
-  } catch {
-    return { error: "That file couldn't be read. Use the Excel template (.xlsx) or a CSV file." }
-  }
-  const sheet = workbook.getWorksheet("Members") ?? workbook.worksheets[0]
-  if (!sheet) return { error: "The file has no sheets." }
-
-  // Map header cells → our column keys.
-  const header = sheet.getRow(1)
-  const map = new Map<number, ColumnKey>()
-  header.eachCell((cell, col) => {
-    const h = norm(cellText(cell.value))
-    const column = IMPORT_COLUMNS.find((c) => norm(c.header) === h || c.aliases.some((a) => norm(a) === h))
-    if (column) map.set(col, column.key)
-  })
-  const missing = IMPORT_COLUMNS.filter((c) => c.required && ![...map.values()].includes(c.key))
-  if (missing.length) {
-    return { error: `Missing required column(s): ${missing.map((c) => c.header).join(", ")}. Use the template.` }
-  }
-
-  const rows: RawRow[] = []
-  for (let r = 2; r <= sheet.rowCount; r++) {
-    const row = sheet.getRow(r)
-    const raw: RawRow = {}
-    for (const [col, key] of map) raw[key] = cellText(row.getCell(col).value)
-    if (Object.values(raw).every((v) => !v)) continue // skip blank lines
-    ;(raw as RawRow & { _row?: number })._row = r
-    rows.push(raw)
-    if (rows.length > IMPORT_MAX_ROWS) return { error: `Import up to ${IMPORT_MAX_ROWS} rows at a time.` }
-  }
-  if (!rows.length) return { error: "No member rows were found under the header row." }
-  return { rows, firstRow: 2 }
+export function readImportFile(file: File) {
+  return readSheet(file, IMPORT_COLUMNS, { sheetName: "Members", maxRows: IMPORT_MAX_ROWS, noun: "member" })
 }
 
 // ─── Value helpers ─────────────────────────────────────────────────────────────
@@ -119,15 +48,6 @@ function toPosition(value: string | undefined): MemberPositionValue | null {
   const v = norm(value)
   const found = MEMBER_POSITIONS.find((p) => norm(p.label) === v || norm(p.value) === v)
   return found?.value ?? null
-}
-
-/** Accepts yyyy-mm-dd, m/d/yyyy or d-mm-yyyy-ish values; returns yyyy-mm-dd or "" (or null when unreadable). */
-function toDay(value: string | undefined): string | null {
-  if (!value) return ""
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value
-  const m = value.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/)
-  if (m) return `${m[3]}-${m[1]!.padStart(2, "0")}-${m[2]!.padStart(2, "0")}` // month/day/year (PH/US style)
-  return null
 }
 
 // ─── Address matching (PSGC names → codes), cached per import ──────────────────
@@ -201,7 +121,7 @@ export async function validateImportRows(rows: RawRow[]): Promise<ImportRow[]> {
   const result: ImportRow[] = []
 
   for (const raw of rows) {
-    const rowNumber = (raw as RawRow & { _row?: number })._row ?? 0
+    const rowNumber = raw._row
     const errors: string[] = []
     const warnings: string[] = []
     const tracking = raw.trackingNumber?.trim() ?? ""
@@ -274,12 +194,15 @@ export async function validateImportRows(rows: RawRow[]): Promise<ImportRow[]> {
 export async function importTemplate() {
   const workbook = new ExcelJS.Workbook()
   workbook.creator = "Gintong Araw CDA"
-  const sheet = workbook.addWorksheet("Members", { views: [{ state: "frozen", ySplit: 1 }] })
-  sheet.columns = IMPORT_COLUMNS.map((c) => ({
-    header: c.header,
-    key: c.key,
-    width: Math.max(12, c.header.length + 4),
-  }))
+  const sheet = templateSheet(workbook, "Members", IMPORT_COLUMNS, [
+    "trackingNumber",
+    "contactNumber",
+    "birthDate",
+    "memberSince",
+    "blockNumber",
+    "lotNumber",
+    "zipCode",
+  ])
   sheet.addRow({
     trackingNumber: "2026-0001",
     lastName: "Dela Cruz",
@@ -299,24 +222,6 @@ export async function importTemplate() {
     province: "",
     zipCode: "1440",
   })
-  const header = sheet.getRow(1)
-  header.font = { bold: true }
-  header.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFEF3C7" } }
-  for (const col of IMPORT_COLUMNS.filter((c) => c.required)) {
-    sheet.getCell(1, IMPORT_COLUMNS.indexOf(col) + 1).font = { bold: true, color: { argb: "FFB91C1C" } }
-  }
-  // Keep tracking numbers, dates and phone numbers as text so Excel doesn't reformat them.
-  for (const key of [
-    "trackingNumber",
-    "contactNumber",
-    "birthDate",
-    "memberSince",
-    "blockNumber",
-    "lotNumber",
-    "zipCode",
-  ]) {
-    sheet.getColumn(key).numFmt = "@"
-  }
 
   const help = workbook.addWorksheet("Instructions")
   help.getColumn(1).width = 110

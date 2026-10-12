@@ -84,9 +84,21 @@ Each phase ends with something that can be deployed and tested.
 - [x] Officer user guide (`09-user-guide.md`) and backup/restore runbook (`10-backup-restore.md`)
 - [ ] First restore drill
 
+## Phase 7 — Contributions
+
+See `11-contributions.md`.
+
+- [x] Monthly dues derived from a rate schedule (₱1,000 → ₱1,500 from Nov 2026); payments applied oldest month first
+- [x] Collect screen (QR scan or manual), repeat-payment warning, void with reason
+- [x] Overview (expected vs collected, balances, payments), Excel/CSV export, dashboard card
+- [x] Member page ledger; public card page shows payments + balance
+- [x] Past-payment import; rates in Settings
+- [ ] Import the real payment history since January 2026
+- [ ] Assign contribution permissions to the right groups (Groups & Roles)
+
 ## Later
 
 - Offline scanning (PWA + IndexedDB queue + sync)
-- Dues/obligations tracking
+- Expenses / fund balance; other collection types (special assessments)
 - SMS meeting reminders
 - Member self-service portal

@@ -16,6 +16,7 @@ Responsive web app for the **Gintong Araw Community Development Association, Inc
 | 08  | [Deployment](08-deployment.md)                     | Vercel setup, environment variables, Hostinger DNS for gintongaraw.coderyan.dev |
 | 09  | [Officer user guide](09-user-guide.md)             | Day-to-day use: members, import, ID cards, meetings, attendance                 |
 | 10  | [Backup & restore](10-backup-restore.md)           | Neon point-in-time restore, monthly dumps, R2 photo copy, drills                |
+| 11  | [Contributions](11-contributions.md)               | Monthly dues rules, payments, screens and permissions                           |
 
 ## At a glance
 

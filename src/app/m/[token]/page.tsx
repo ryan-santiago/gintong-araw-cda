@@ -2,11 +2,13 @@ import { Suspense } from "react"
 import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
-import { BadgeCheck, CalendarCheck, CircleAlert, MapPin, UserRound } from "lucide-react"
+import { BadgeCheck, CalendarCheck, CircleAlert, MapPin, UserRound, Wallet } from "lucide-react"
 
 import { Skeleton } from "@/components/ui/skeleton"
+import { formatMonth, formatPeso, paymentMethodLabel } from "@/features/contributions/ledger"
 import { publicMemberByToken } from "@/features/public-card/queries"
 import { formatDay, formatManila } from "@/lib/dates"
+import { cn } from "@/lib/utils"
 
 // Reached by scanning a member's ID card. No login; never indexed by search engines.
 export const metadata: Metadata = {
@@ -98,6 +100,8 @@ async function MemberCard({ params }: { params: PageProps<"/m/[token]">["params"
         </div>
       </section>
 
+      <Contributions payments={member.payments} summary={member.contributions} />
+
       <section className="rounded-3xl bg-card p-6 shadow-card">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="flex items-center gap-2 font-bold">
@@ -123,5 +127,83 @@ async function MemberCard({ params }: { params: PageProps<"/m/[token]">["params"
         )}
       </section>
     </>
+  )
+}
+
+type PublicMember = Extract<NonNullable<Awaited<ReturnType<typeof publicMemberByToken>>>, { active: true }>
+
+function Contributions({
+  payments,
+  summary,
+}: {
+  payments: PublicMember["payments"]
+  summary: PublicMember["contributions"]
+}) {
+  return (
+    <section className="rounded-3xl bg-card p-6 shadow-card">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="flex items-center gap-2 font-bold">
+          <Wallet className="size-5 text-secondary" /> Contributions
+        </h2>
+        <span className="rounded-full bg-accent px-3 py-1 text-sm font-semibold text-accent-foreground">
+          {payments.length} payment{payments.length === 1 ? "" : "s"}
+        </span>
+      </div>
+      {payments.length === 0 ? (
+        <p className="rounded-2xl border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
+          No payments recorded yet.
+        </p>
+      ) : (
+        <ul className="max-h-80 divide-y overflow-y-auto">
+          {payments.map((p) => (
+            <li key={p.id} className="flex items-center justify-between py-2.5 text-sm">
+              <span>
+                <span className="block font-medium">{formatDay(p.paidOn, "MMMM d, yyyy")}</span>
+                <span className="text-xs text-muted-foreground">{paymentMethodLabel(p.method)}</span>
+              </span>
+              <span className="font-semibold tabular-nums">{formatPeso(p.amount)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <dl className="mt-4 grid gap-2 rounded-2xl bg-muted/60 p-4 text-sm">
+        <div className="flex justify-between">
+          <dt className="text-muted-foreground">Total paid</dt>
+          <dd className="font-semibold tabular-nums">{formatPeso(summary.totalPaid)}</dd>
+        </div>
+        <div className="flex justify-between">
+          <dt className="text-muted-foreground">Total due since {formatMonth(summary.startMonth)}</dt>
+          <dd className="font-semibold tabular-nums">{formatPeso(summary.totalDue)}</dd>
+        </div>
+        <div className="flex justify-between">
+          <dt className="text-muted-foreground">Paid through</dt>
+          <dd className="font-semibold">{summary.paidThrough ? formatMonth(summary.paidThrough, "long") : "—"}</dd>
+        </div>
+        <div className="mt-1 flex items-center justify-between border-t pt-3">
+          <dt className="font-semibold">
+            {summary.balance > 0 ? "Balance due" : summary.credit > 0 ? "Advance credit" : "Balance"}
+          </dt>
+          <dd
+            className={cn(
+              "text-xl font-extrabold tabular-nums",
+              summary.balance > 0 ? "text-destructive" : "text-success"
+            )}
+          >
+            {summary.balance > 0
+              ? formatPeso(summary.balance)
+              : summary.credit > 0
+                ? formatPeso(summary.credit)
+                : "Fully paid"}
+          </dd>
+        </div>
+        {summary.balance > 0 && (
+          <p className="text-xs text-muted-foreground">
+            {summary.unpaidMonths} month{summary.unpaidMonths === 1 ? "" : "s"} not fully paid. Please settle with the
+            HOA collector or office.
+          </p>
+        )}
+      </dl>
+    </section>
   )
 }

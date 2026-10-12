@@ -1,7 +1,7 @@
 # Gintong Araw CDA — Member Management System
 
 Specs live in `docs/` and are the source of truth. Read the relevant doc before building a module:
-`docs/01-product-requirements.md` · `02-tech-stack.md` · `03-architecture.md` · `04-database-schema.md` · `05-roles-permissions.md` · `06-design-system.md` · `07-roadmap.md` · `08-deployment.md` · `09-user-guide.md` · `10-backup-restore.md`
+`docs/01-product-requirements.md` · `02-tech-stack.md` · `03-architecture.md` · `04-database-schema.md` · `05-roles-permissions.md` · `06-design-system.md` · `07-roadmap.md` · `08-deployment.md` · `09-user-guide.md` · `10-backup-restore.md` · `11-contributions.md`
 
 ## Stack
 
@@ -55,6 +55,17 @@ Next.js 16.4 (App Router, TS strict) · React 19.3 · Tailwind v4 · shadcn/ui �
 - Dashboard data: `src/features/dashboard/queries.ts`. At-risk rule: `src/features/attendance/at-risk.ts` (consecutive missed CLOSED meetings on/after the member's `createdAt`).
 - Settings: one row per key in `setting`; read with `getAppSettings()` (defaults in `src/features/settings/schema.ts`), saved by `saveSettings` (`settings.manage`).
 - With Cache Components, recently visited pages stay mounted but hidden (React Activity) — in browser tests, scope locators to visible content.
+
+## Contributions (Phase 7)
+
+- `src/features/contributions/`. Only payments are stored (`contribution_payment`, centavos, `paidOn` @db.Date). Dues and balances are derived by `buildLedger()` in `ledger.ts` (pure, unit-tested): month rate from the `contribution.schedule` setting, payments applied oldest month first, start = later of schedule start and Member Since.
+- Payments are never edited or deleted: `voidPayment` (reason required). Imported payments (`source: IMPORT`) are skipped by the repeat warning and the Collect screen's recent list.
+- QR scanning UI is shared: `QrCamera`/`beep` from `src/components/shared/qr-camera.tsx`. Spreadsheet imports share `src/lib/spreadsheet.ts` (`readSheet`, CSV cells kept as text) and `ImportWizard`.
+
+## Search & notifications
+
+- Ctrl K: `src/components/layout/command-menu.tsx` (cmdk with `shouldFilter={false}`) + `globalSearch` in `src/features/search/actions.ts` (members by name/tracking/Blk-Lot/phone, meetings by title/date; permission-filtered).
+- Bell: `getNotifications` in `src/features/notifications/actions.ts` computes alerts from live data per permission (nothing stored); "seen" is per-browser localStorage keyed by `id:version`. Add a new alert there.
 
 ## Conventions
 

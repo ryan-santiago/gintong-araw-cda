@@ -42,6 +42,10 @@ export default function PrivacyPage() {
                   <b>Attendance:</b> the date and time each member checked in at a meeting, and how (ID scan or manual).
                 </li>
                 <li>
+                  <b>Contributions:</b> each monthly contribution payment — amount, date, how it was paid (e.g. cash or
+                  GCash, with a reference number if given) and who recorded it. No online payments are processed.
+                </li>
+                <li>
                   <b>Officer and staff accounts:</b> name, email, password (stored encrypted), sign-in times, and a log
                   of changes made in the system, including the device and IP address used.
                 </li>
@@ -54,6 +58,7 @@ export default function PrivacyPage() {
                 <li>To keep an accurate list of member households and their lot assignments.</li>
                 <li>To issue member ID cards and verify members at meetings.</li>
                 <li>To record meeting attendance and see which members need follow-up.</li>
+                <li>To keep track of monthly contributions and the Association&apos;s collections.</li>
                 <li>To keep the records secure and accountable (who changed what, and when).</li>
               </ul>
               <p className="mt-2">We do not sell your information or use it for advertising.</p>
@@ -67,9 +72,10 @@ export default function PrivacyPage() {
               </p>
               <p className="mt-2">
                 <b>Your member card page:</b> scanning the QR code on your ID opens a page showing only your photo,
-                name, position, tracking number, block and lot, membership status and the dates you attended. It never
-                shows your contact number, email, address or date of birth. If your card is lost, ask the HOA office to
-                cancel it — the old QR code stops working immediately.
+                name, position, tracking number, block and lot, membership status, the dates you attended, and your
+                contribution payments with your current balance. It never shows your contact number, email, address or
+                date of birth. If your card is lost, ask the HOA office to cancel it — the old QR code stops working
+                immediately.
               </p>
             </section>
 

@@ -10,24 +10,38 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import type { ImportRow } from "@/features/members/import"
+import type { ImportRow, ImportSummary } from "@/lib/import-types"
 import { cn } from "@/lib/utils"
 
-type Summary = { total: number; ok: number; errors: number; duplicates: number; warnings: number }
-type Preview = { summary: Summary; rows: ImportRow[] }
+type Preview = { summary: ImportSummary; rows: ImportRow[] }
 type Filter = "all" | "ok" | "issues"
 
-async function send(file: File, commit: boolean) {
+async function send(endpoint: string, file: File, commit: boolean) {
   const body = new FormData()
   body.set("file", file)
   if (commit) body.set("commit", "1")
-  const res = await fetch("/api/members/import", { method: "POST", body })
+  const res = await fetch(endpoint, { method: "POST", body })
   const data = await res.json().catch(() => ({ error: "Something went wrong. Please try again." }))
   if (!res.ok) throw new Error(data.error ?? "Something went wrong. Please try again.")
   return data
 }
 
-export function MemberImport() {
+/**
+ * Upload → validation preview → import. The endpoint answers GET with the template, and POST (multipart
+ * `file`, plus `commit=1` to save) with `{ summary, rows }` or `{ imported, skipped }`.
+ */
+export function ImportWizard({
+  endpoint,
+  noun,
+  intro,
+  doneHref,
+}: {
+  endpoint: string
+  noun: { one: string; many: string }
+  intro: React.ReactNode
+  doneHref: string
+}) {
+  const plural = (n: number) => (n === 1 ? noun.one : noun.many)
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
@@ -43,7 +57,7 @@ export function MemberImport() {
     setFilter("all")
     setBusy("check")
     try {
-      setPreview(await send(next, false))
+      setPreview(await send(endpoint, next, false))
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -55,11 +69,11 @@ export function MemberImport() {
     if (!file) return
     setBusy("import")
     try {
-      const { imported, skipped } = await send(file, true)
-      toast.success(`Imported ${imported} member${imported === 1 ? "" : "s"}`, {
+      const { imported, skipped } = await send(endpoint, file, true)
+      toast.success(`Imported ${imported} ${plural(imported)}`, {
         description: skipped ? `${skipped} row${skipped === 1 ? " was" : "s were"} skipped.` : undefined,
       })
-      router.push("/members")
+      router.push(doneHref)
       router.refresh()
     } catch (e) {
       toast.error((e as Error).message)
@@ -84,13 +98,10 @@ export function MemberImport() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="grid gap-1">
             <p className="font-semibold">1. Fill in the template</p>
-            <p className="text-sm text-muted-foreground">
-              One row per household. Required: tracking number, last name, first name, block and lot. A Members export
-              from this app also works.
-            </p>
+            <p className="text-sm text-muted-foreground">{intro}</p>
           </div>
           <Button asChild variant="outline">
-            <a href="/api/members/import" download>
+            <a href={endpoint} download>
               <Download /> Download template
             </a>
           </Button>
@@ -157,7 +168,7 @@ export function MemberImport() {
               </Button>
               <Button onClick={runImport} disabled={busy !== null || preview.summary.ok === 0}>
                 {busy === "import" ? <Loader2 className="animate-spin" /> : <Upload />}
-                Import {preview.summary.ok} member{preview.summary.ok === 1 ? "" : "s"}
+                Import {preview.summary.ok} {plural(preview.summary.ok)}
               </Button>
             </div>
           </div>
@@ -200,6 +211,7 @@ export function MemberImport() {
                     <TableCell className="pl-5 text-muted-foreground tabular-nums">{r.row}</TableCell>
                     <TableCell className="font-medium whitespace-normal">
                       {r.name || <span className="text-muted-foreground">—</span>}
+                      {r.detail && <p className="text-xs font-normal text-muted-foreground">{r.detail}</p>}
                       <Notes row={r} className="mt-1 md:hidden" />
                     </TableCell>
                     <TableCell className="hidden font-mono text-sm sm:table-cell">{r.trackingNumber || "—"}</TableCell>
@@ -219,10 +231,9 @@ export function MemberImport() {
 
       {!preview && (
         <p className="text-sm text-muted-foreground">
-          Nothing is saved until you press Import. Rows with errors and tracking numbers that already exist are skipped
-          —{" "}
-          <Link href="/members" className="font-medium text-foreground underline-offset-4 hover:underline">
-            back to members
+          Nothing is saved until you press Import. Rows with errors or duplicates are skipped —{" "}
+          <Link href={doneHref} className="font-medium text-foreground underline-offset-4 hover:underline">
+            go back
           </Link>
           .
         </p>

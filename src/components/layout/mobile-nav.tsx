@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ClipboardCheck, LayoutDashboard, Menu, QrCode, Users } from "lucide-react"
+import { ClipboardCheck, LayoutDashboard, Menu, QrCode, Users, Wallet } from "lucide-react"
 
 import { useSidebar } from "@/components/ui/sidebar"
 import { useCan } from "@/components/viewer-provider"
@@ -14,6 +14,7 @@ const allTabs: { title: string; href: string; icon: typeof Users; permission: Pe
   { title: "Home", href: "/dashboard", icon: LayoutDashboard, permission: "dashboard.view" },
   { title: "Members", href: "/members", icon: Users, permission: "member.view" },
   { title: "Attendance", href: "/attendance", icon: ClipboardCheck, permission: "meeting.view" },
+  { title: "Dues", href: "/contributions", icon: Wallet, permission: "contribution.view" },
 ]
 
 export function MobileNav() {

@@ -19,6 +19,12 @@ export const PERMISSIONS = {
   "attendance.delete": { module: "Attendance", description: "Remove a wrong attendance record" },
   "attendance.export": { module: "Attendance", description: "Export attendance by date range" },
 
+  "contribution.view": { module: "Contributions", description: "View contributions, member balances and reports" },
+  "contribution.collect": { module: "Contributions", description: "Record contribution payments (scan or manual)" },
+  "contribution.void": { module: "Contributions", description: "Void a wrong payment" },
+  "contribution.export": { module: "Contributions", description: "Export payments and balances" },
+  "contribution.manage": { module: "Contributions", description: "Set rates and start month; import past payments" },
+
   "user.view": { module: "Users", description: "View users" },
   "user.approve": { module: "Users", description: "Approve or reject pending registrations" },
   "user.manage": { module: "Users", description: "Suspend/reactivate users, assign groups, reset passwords" },
@@ -78,7 +84,14 @@ export const DEFAULT_GROUPS: {
     name: "Officer",
     rank: 20,
     description: "Maintains members, meetings and attendance.",
-    permissions: ["dashboard.view", ...startsWith("member.", "meeting.", "attendance."), "audit.view"],
+    permissions: [
+      "dashboard.view",
+      ...startsWith("member.", "meeting.", "attendance."),
+      "contribution.view",
+      "contribution.collect",
+      "contribution.export",
+      "audit.view",
+    ],
   },
   {
     name: "Attendance Staff",
@@ -90,6 +103,6 @@ export const DEFAULT_GROUPS: {
     name: "Viewer",
     rank: 40,
     description: "Read-only access.",
-    permissions: ["dashboard.view", "member.view", "meeting.view"],
+    permissions: ["dashboard.view", "member.view", "meeting.view", "contribution.view"],
   },
 ]

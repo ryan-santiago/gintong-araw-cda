@@ -10,6 +10,11 @@ What you see depends on your role. If a button or page is missing, ask an admini
 - **Forgot your password?** The app sends no email. Ask an administrator. They will give you a temporary password, and you will be asked to choose a new one when you sign in.
 - Too many wrong passwords in a row will lock sign-in for about a minute.
 
+## Search and notifications
+
+- **Search:** press **Ctrl K** (or tap the search bar) and type a name, tracking number (`2026-0012`), **Blk 4 Lot 12**, part of a phone number, or a meeting date (**Oct 12**). Members show their balance. Enter opens the record. Recently opened members appear when the box is empty.
+- **Bell:** shows what needs attention for your role: accounts to approve, a meeting open for check-in or left open, members at risk, overdue contributions, an upcoming rate change, and failed sign-ins on your account. Each alert disappears once it is resolved.
+
 ## Members
 
 **Members** lists one record per household. Search by name, tracking number or phone, or filter by block, position or _At risk_.
@@ -45,6 +50,24 @@ What you see depends on your role. If a button or page is missing, ask an admini
 5. **Attendance → Export attendance:** choose a date range and download Excel/CSV.
 
 If the camera doesn't start, allow camera access for the site in your browser settings. Use the address `https://…`, not a link opened inside another app.
+
+## Contributions
+
+Every household owes a monthly contribution (₱1,000 until October 2026, ₱1,500 from November 2026). The app only keeps records. No money is handled online.
+
+1. **Contributions → Collect** (or **Record payment** on a member's page).
+2. Find the member with **Scan QR** or **Manual** (tracking number or name). You'll see their balance, the months still unpaid and the month they're paid through.
+3. Type the **amount received**, or tap a quick pick (1–3 months, or the full balance). Choose the method (Cash, GCash, Bank transfer, Other) and add a reference number for GCash or bank payments. Then press **Record**.
+4. The amount is applied to the **oldest unpaid month first**. Overpayments count as advance payment for the coming months.
+5. If the same member was recorded in the last 10 minutes, the app asks before recording again, to avoid double entries.
+
+**Mistakes:** payments can't be edited or deleted. On the member page (or Contributions → Payments), tap the void icon, give a reason, then record the correct payment.
+
+**Contributions page:** pick a month to see collected vs expected and the collection rate. **Balances** lists every household that owes, with overdue months. **Payments** lists payments by date range and exports them to Excel/CSV. The Excel file also has a Balances sheet.
+
+**Past payments:** **Contributions → Import** loads payments from Excel/CSV (tracking number, date paid, amount). Importing the same file twice is safe because already-recorded payments are skipped.
+
+**Rates:** **Settings → Contributions** sets the start month and the monthly rate, plus future increases. Members see their own payments and balance when they scan their ID card.
 
 ## Dashboard
 

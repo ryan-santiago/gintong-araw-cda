@@ -7,6 +7,7 @@ import {
   Settings,
   ShieldCheck,
   Users,
+  Wallet,
   type LucideIcon,
 } from "lucide-react"
 
@@ -55,6 +56,13 @@ export const navGroups: NavGroup[] = [
         icon: ClipboardCheck,
         permission: "meeting.view",
         description: "Check-ins and attendance exports",
+      },
+      {
+        title: "Contributions",
+        href: "/contributions",
+        icon: Wallet,
+        permission: "contribution.view",
+        description: "Monthly contributions, balances and collections",
       },
       {
         title: "Meetings",
