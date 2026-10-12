@@ -46,6 +46,7 @@ Next.js 16.4 (App Router, TS strict) · React 19.3 · Tailwind v4 · shadcn/ui �
 
 - `src/features/meetings/` (CRUD, open/close, start today) and `src/features/attendance/` (capture actions, capture screen, member history, queries). Export: `/api/attendance/export`.
 - Card QR = `<APP_URL>/m/<cardToken>` (`src/lib/card-link.ts`); public page `src/app/m/[token]` shows only safe fields (no phone/email/address/DOB). `APP_URL` must be final before printing cards.
+- Vercel functions are pinned to `sin1` (Singapore) in `vercel.json`, next to the Neon database (`ap-southeast-1`). Keep them in the same region; cross-region adds ~200 ms per query.
 - `pnpm build` runs `prisma generate` + `copy-vendor-wasm` before `next build` (Vercel can skip postinstall when it reuses cached node_modules).
 - Self-hosted WASM: `scripts/copy-vendor-wasm.mjs` (postinstall and build) copies MediaPipe → `public/mediapipe/wasm` and zxing → `public/zxing`. Both are excluded from `proxy.ts`, git, lint and Prettier.
 - If `prisma migrate dev` refuses to run non-interactively, generate SQL with `prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script`, save it as a new migration folder and run `prisma migrate deploy`.
